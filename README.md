@@ -22,8 +22,11 @@ node check-pwned-passwords.js passwords.txt
 # Run with a CSV file
 node check-pwned-passwords.js passwords.csv
 
-# Show passwords in output (use with caution)
-node check-pwned-passwords.js passwords.txt --show-passwords
+# Export results to CSV (line number + pwned count)
+node check-pwned-passwords.js passwords.txt --export-csv
+
+# Export results to CSV including passwords (sensitive)
+node check-pwned-passwords.js passwords.txt --export-csv --include-passwords --export-file results.csv
 ```
 
 ## Input File Formats
@@ -74,22 +77,28 @@ Results from cache: 0
 Cache efficiency: 0.0%
 ```
 
-### Showing Passwords in Output
+### Exporting Results to CSV
 
-By default, passwords are not displayed for security. To show passwords for compromised entries, use the `--show-passwords` flag:
+By default, passwords are not displayed in the console for security. You can export results to a CSV file instead:
 
 ```bash
-node check-pwned-passwords.js passwords.txt --show-passwords
+# Basic CSV export (line_number, pwned_count)
+node check-pwned-passwords.js passwords.txt --export-csv
+
+# CSV export including passwords (adds a password column)
+node check-pwned-passwords.js passwords.txt --export-csv --include-passwords --export-file results.csv
 ```
 
-Output with flag:
-```
-Line 1: ✗ PWNED (2,031,380 times)
-   Password: password123
-Line 2: ✓ Safe
-Line 3: ✗ PWNED (21,969,901 times)
-   Password: qwerty
-```
+When `--export-csv` is used without an explicit output path, a file named like
+`pwned-password-results-<timestamp>.csv` will be created in the current directory.
+
+Columns in the CSV:
+- `line_number` – line in your input file
+- `pwned_count` – number of times the password was seen in breaches (blank if an error occurred)
+- `password` – column is only added when `--include-passwords` is used and is populated **only for pwned entries** (blank for safe/error rows)
+
+> ⚠️ If you use `--include-passwords`, the export file will contain raw compromised passwords.
+> Treat this file as highly sensitive and store/delete it accordingly.
 
 ## How It Works
 

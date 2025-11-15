@@ -150,22 +150,66 @@ function delay(ms) {
 }
 
 /**
+ * Escape a value for safe inclusion in a CSV file
+ * @param {any} value
+ * @returns {string}
+ */
+function escapeCsv(value) {
+  if (value === null || value === undefined) return '';
+  const str = String(value);
+  if (/[",\n\r]/.test(str)) {
+    return '"' + str.replace(/"/g, '""') + '"';
+  }
+  return str;
+}
+
+/**
  * Main function
  */
 async function main() {
   const args = process.argv.slice(2);
 
   if (args.length === 0) {
-    console.error('Usage: ./check-pwned-passwords.js <file> [--show-passwords]');
-    console.error('   or: node check-pwned-passwords.js <file> [--show-passwords]');
+    console.error('Usage: ./check-pwned-passwords.js <file> [options]');
+    console.error('   or: node check-pwned-passwords.js <file> [options]');
     console.error('');
     console.error('  <file>: Path to a text file (one password per line) or CSV file');
-    console.error('  --show-passwords: Optional flag to display passwords in results');
+    console.error('');
+    console.error('Options:');
+    console.error('  --export-csv           Export results to a CSV file');
+    console.error('  --include-passwords    Include passwords in CSV export (sensitive)');
+    console.error('  --export-file <path>   Path to export CSV file');
     process.exit(1);
   }
 
-  const showPasswords = args.includes('--show-passwords');
-  const filePath = path.resolve(args.filter(arg => !arg.startsWith('--'))[0]);
+  // Basic argument parsing
+  const nonFlagArgs = args.filter(arg => !arg.startsWith('--'));
+  const filePath = path.resolve(nonFlagArgs[0]);
+
+  const hasFlag = (name) => args.includes(name);
+
+  const getFlagValue = (name) => {
+    const prefix = `${name}=`;
+    const direct = args.find(a => a === name || a.startsWith(prefix));
+    if (!direct) return null;
+    if (direct.startsWith(prefix)) {
+      return direct.slice(prefix.length);
+    }
+    const index = args.indexOf(direct);
+    if (index !== -1 && args[index + 1] && !args[index + 1].startsWith('--')) {
+      return args[index + 1];
+    }
+    return null;
+  };
+
+  const exportCsv = hasFlag('--export-csv');
+  const includePasswords = hasFlag('--include-passwords');
+  let exportFile = getFlagValue('--export-file');
+
+  if (exportCsv && !exportFile) {
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    exportFile = path.join(process.cwd(), `pwned-password-results-${timestamp}.csv`);
+  }
 
   if (!fs.existsSync(filePath)) {
     console.error(`\n❌ Error: File does not exist at the specified path\n`);
@@ -173,6 +217,11 @@ async function main() {
     console.error(`\n💡 Tip: Make sure the file exists and the path is correct.`);
     console.error(`   Current directory: ${process.cwd()}\n`);
     process.exit(1);
+  }
+
+  if (includePasswords && !exportCsv) {
+    console.error('\n⚠️  --include-passwords is only valid when used with --export-csv.');
+    console.error('   Passwords will not be printed to stdout; they are only included in the CSV export.\n');
   }
 
   console.log('Parsing passwords...');
@@ -226,14 +275,10 @@ async function main() {
       });
     }
   }
-
   console.log('\n\n--- Results ---\n');
   console.log('(Line numbers correspond to your input file)\n');
   results.forEach((result) => {
     console.log(`Line ${result.originalLineNumber}: ${result.status}`);
-    if (showPasswords && (result.count > 0 || result.count === -1)) {
-      console.log(`   Password: ${result.password}`);
-    }
   });
 
   console.log('\n--- Summary ---');
@@ -250,6 +295,35 @@ async function main() {
   console.log(`\nAPI calls made: ${checkedCount}`);
   console.log(`Results from cache: ${cachedCount}`);
   console.log(`Cache efficiency: ${passwordEntries.length > 0 ? ((cachedCount / passwordEntries.length) * 100).toFixed(1) : 0}%`);
+
+  if (exportCsv) {
+    try {
+      const headers = ['line_number', 'pwned_count'];
+      if (includePasswords) headers.push('password');
+
+      const lines = [headers.join(',')];
+
+      results.forEach((result) => {
+        const row = [
+          result.originalLineNumber,
+          result.count >= 0 ? result.count : ''
+        ];
+        if (includePasswords) {
+          // Only include the password for pwned entries; leave blank for safe or error rows
+          row.push(result.count > 0 ? (result.password || '') : '');
+        }
+        lines.push(row.map(escapeCsv).join(','));
+      });
+
+      fs.writeFileSync(exportFile, lines.join('\n'), 'utf-8');
+      console.log(`\nCSV export written to: ${exportFile}`);
+      if (includePasswords) {
+        console.log('⚠️  Export includes passwords. Handle this file as highly sensitive.');
+      }
+    } catch (error) {
+      console.error('\n❌ Error writing CSV export:', error.message);
+    }
+  }
 }
 
 main().catch(error => {
