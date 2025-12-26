@@ -14,19 +14,45 @@ A Node.js script that checks passwords against the Have I Been Pwned API with in
 
 ```bash
 # Make the script executable (optional)
-chmod +x check-pwned-passwords.js
+chmod +x pwncheck.js
 
 # Run with a text file
-node check-pwned-passwords.js passwords.txt
+node pwncheck.js examples/passwords.txt
 
 # Run with a CSV file
-node check-pwned-passwords.js passwords.csv
+node pwncheck.js examples/passwords.csv
 
 # Export results to CSV (line number + pwned count)
-node check-pwned-passwords.js passwords.txt --export-csv
+node pwncheck.js examples/passwords.txt --export-csv
 
 # Export results to CSV including passwords (sensitive)
-node check-pwned-passwords.js passwords.txt --export-csv --include-passwords --export-file results.csv
+node pwncheck.js examples/passwords.txt --export-csv --include-passwords --export-file results.csv
+```
+
+## Installation as CLI Command
+
+To run `pwncheck.js` from anywhere in your terminal, add it to your PATH. The examples below assume the project is in the `~/pwncheck` directory. Adjust the path to match your setup.
+
+**macOS (Zsh):**
+
+```bash
+# Add to PATH
+echo 'export PATH="$HOME/pwncheck:$PATH"' >> ~/.zshrc
+source ~/.zshrc
+
+# Now you can run from anywhere
+pwncheck.js passwords.txt
+```
+
+**WSL / Linux (Bash):**
+
+```bash
+# Add to PATH
+echo 'export PATH="$HOME/pwncheck:$PATH"' >> ~/.bashrc
+source ~/.bashrc
+
+# Now you can run from anywhere
+pwncheck.js passwords.txt
 ```
 
 ## Input File Formats
@@ -41,7 +67,8 @@ qwerty
 
 ### CSV
 
-The script extracts passwords from the first column. Additional columns are ignored.
+1. **Passwords must be in the first column** — other columns (username, email, etc.) are ignored
+2. **Remove any header row** — the script processes all rows, so a header like `password,username` would be checked as a password
 
 ```csv
 password123,user1,user1@example.com
@@ -85,10 +112,10 @@ By default, passwords are not displayed in the console for security. You can exp
 
 ```bash
 # Basic CSV export (line_number, pwned_count)
-node check-pwned-passwords.js passwords.txt --export-csv
+node pwncheck.js examples/passwords.txt --export-csv
 
 # CSV export including passwords (adds a password column)
-node check-pwned-passwords.js passwords.txt --export-csv --include-passwords --export-file results.csv
+node pwncheck.js examples/passwords.txt --export-csv --include-passwords --export-file results.csv
 ```
 
 When `--export-csv` is used without an explicit output path, a file named like
@@ -122,7 +149,3 @@ Columns in the CSV:
 ## API Information
 
 This script uses the [Have I Been Pwned Pwned Passwords API](https://haveibeenpwned.com/API/v3#PwnedPasswords) which is free to use.
-
-## TODO
-
-- [ ] ...

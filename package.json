@@ -32,7 +32,7 @@
     "cli",
     "nodejs"
   ],
-  "author": "",
+  "author": "Fetch Designs (https://www.fetchdesigns.com)",
   "license": "ISC",
   "devDependencies": {
     "@commitlint/cli": "^20.2.0",
