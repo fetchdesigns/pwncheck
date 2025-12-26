@@ -125,5 +125,4 @@ This script uses the [Have I Been Pwned Pwned Passwords API](https://haveibeenpw
 
 ## TODO
 
-- [ ] Update main scriptname to match main dir/repo name
-- [ ] Add a remote
+- [ ] ...
