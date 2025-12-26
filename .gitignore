@@ -3,3 +3,7 @@ node_modules/
 .DS_Store
 .env
 .env.local
+
+# Output files
+pwned-password-results-*.csv
+results.csv
