@@ -14,7 +14,9 @@
     "format": "prettier --check .",
     "format:fix": "prettier --write .",
     "audit": "npm audit",
-    "test": "npm run lint && npm run format"
+    "test": "node --test",
+    "test:watch": "node --test --watch",
+    "pretest": "npm run lint && npm run format"
   },
   "lint-staged": {
     "*.{js,cjs,mjs,json,md,yml,yaml}": [

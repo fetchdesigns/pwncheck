@@ -6,8 +6,8 @@ import fs from 'fs';
 import path from 'path';
 
 // Configuration constants
-const API_RATE_LIMIT_DELAY_MS = 100;
-const HASH_PREFIX_LENGTH = 5;
+export const API_RATE_LIMIT_DELAY_MS = 100;
+export const HASH_PREFIX_LENGTH = 5;
 
 // ANSI color codes
 const COLOR_GREEN = '\x1b[32m';
@@ -17,12 +17,12 @@ const COLOR_RED = '\x1b[31m';
 const COLOR_RESET = '\x1b[0m';
 
 // Cache to prevent duplicate API calls
-const hashCache = new Map();
+export const hashCache = new Map();
 
 /**
  * Calculate SHA-1 hash of a password
  */
-function sha1(password) {
+export function sha1(password) {
   return crypto.createHash('sha1').update(password).digest('hex').toUpperCase();
 }
 
@@ -31,7 +31,7 @@ function sha1(password) {
  * @param {string} password - The password to check
  * @returns {Promise<number>} - Number of times password has been pwned (0 if safe)
  */
-async function checkPassword(password) {
+export async function checkPassword(password) {
   const hash = sha1(password);
   const prefix = hash.substring(0, HASH_PREFIX_LENGTH);
   const suffix = hash.substring(HASH_PREFIX_LENGTH);
@@ -91,7 +91,7 @@ async function checkPassword(password) {
  * @param {string} filePath - Path to the input file
  * @returns {Object[]} - Array of objects with password and originalLineNumber
  */
-function parseInputFile(filePath) {
+export function parseInputFile(filePath) {
   const content = fs.readFileSync(filePath, 'utf-8');
   const lines = content.split('\n');
   const result = [];
@@ -150,7 +150,7 @@ function parseInputFile(filePath) {
 /**
  * Add delay between requests to be respectful to the API
  */
-function delay(ms) {
+export function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
@@ -159,7 +159,7 @@ function delay(ms) {
  * @param {any} value
  * @returns {string}
  */
-function escapeCsv(value) {
+export function escapeCsv(value) {
   if (value === null || value === undefined) return '';
   const str = String(value);
   if (/[",\n\r]/.test(str)) {
@@ -168,7 +168,7 @@ function escapeCsv(value) {
   return str;
 }
 
-function renderProgressBar(current, total, found = 0, width = 30) {
+export function renderProgressBar(current, total, found = 0, width = 30) {
   const ratio = total > 0 ? Math.min(current / total, 1) : 0;
   const filled = Math.round(ratio * width);
   const empty = Math.max(width - filled, 0);
@@ -180,7 +180,7 @@ function renderProgressBar(current, total, found = 0, width = 30) {
 /**
  * Main function
  */
-async function main() {
+export async function main() {
   const args = process.argv.slice(2);
 
   if (args.length === 0) {
@@ -353,7 +353,11 @@ async function main() {
   }
 }
 
-main().catch((error) => {
-  console.error('Fatal error:', error);
-  process.exit(1);
-});
+// Only run main if this is the entry point (not being imported for tests)
+const isMainModule = import.meta.url === `file://${process.argv[1]}`;
+if (isMainModule) {
+  main().catch((error) => {
+    console.error('Fatal error:', error);
+    process.exit(1);
+  });
+}

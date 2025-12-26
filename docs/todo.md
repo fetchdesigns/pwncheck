@@ -2,10 +2,6 @@
 
 Ideas for future improvement.
 
-## High Priority
-
-- [ ] Add real unit tests (currently "test" script just runs lint/format)
-
 ## Features
 
 - [ ] Add `--help` flag to document all CLI options
