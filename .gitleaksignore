@@ -1,0 +1,2 @@
+# Gitleaks baseline - add hashes of false positives to ignore them
+# Format: <secret_hash>

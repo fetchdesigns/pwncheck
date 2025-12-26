@@ -32,6 +32,7 @@ node check-pwned-passwords.js passwords.txt --export-csv --include-passwords --e
 ## Input File Formats
 
 ### Plain Text
+
 ```
 password123
 mySecureP@ssw0rd!
@@ -39,6 +40,7 @@ qwerty
 ```
 
 ### CSV
+
 The script extracts passwords from the first column. Additional columns are ignored.
 
 ```csv
@@ -93,6 +95,7 @@ When `--export-csv` is used without an explicit output path, a file named like
 `pwned-password-results-<timestamp>.csv` will be created in the current directory.
 
 Columns in the CSV:
+
 - `line_number` – line in your input file
 - `pwned_count` – number of times the password was seen in breaches (blank if an error occurred)
 - `password` – column is only added when `--include-passwords` is used and is populated **only for pwned entries** (blank for safe/error rows)
@@ -119,3 +122,8 @@ Columns in the CSV:
 ## API Information
 
 This script uses the [Have I Been Pwned Pwned Passwords API](https://haveibeenpwned.com/API/v3#PwnedPasswords) which is free to use.
+
+## TODO
+
+- [ ] Update main scriptname to match main dir/repo name
+- [ ] Add a remote

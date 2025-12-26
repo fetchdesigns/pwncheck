@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
-const crypto = require('crypto');
-const https = require('https');
-const fs = require('fs');
-const path = require('path');
+import crypto from 'crypto';
+import https from 'https';
+import fs from 'fs';
+import path from 'path';
 
 // Configuration constants
 const API_RATE_LIMIT_DELAY_MS = 100;
@@ -39,7 +39,7 @@ async function checkPassword(password) {
   // Check cache first
   if (hashCache.has(prefix)) {
     const cachedData = hashCache.get(prefix);
-    const match = cachedData.find(entry => entry.suffix === suffix);
+    const match = cachedData.find((entry) => entry.suffix === suffix);
     return match ? match.count : 0;
   }
 
@@ -51,35 +51,38 @@ async function checkPassword(password) {
       method: 'GET',
       headers: {
         'User-Agent': 'Password-Checker-Script',
-        'Add-Padding': 'true' // Optional: adds padding to results for additional privacy
-      }
+        'Add-Padding': 'true', // Optional: adds padding to results for additional privacy
+      },
     };
 
-    https.get(options, (res) => {
-      let data = '';
+    https
+      .get(options, (res) => {
+        let data = '';
 
-      res.on('data', (chunk) => {
-        data += chunk;
+        res.on('data', (chunk) => {
+          data += chunk;
+        });
+
+        res.on('end', () => {
+          // Parse response and cache it
+          const entries = data
+            .split('\r\n')
+            .filter((line) => line.trim())
+            .map((line) => {
+              const [suffix, count] = line.split(':');
+              return { suffix: suffix.trim(), count: parseInt(count, 10) };
+            });
+
+          hashCache.set(prefix, entries);
+
+          // Find matching suffix
+          const match = entries.find((entry) => entry.suffix === suffix);
+          resolve(match ? match.count : 0);
+        });
+      })
+      .on('error', (err) => {
+        reject(err);
       });
-
-      res.on('end', () => {
-        // Parse response and cache it
-        const entries = data.split('\r\n')
-          .filter(line => line.trim())
-          .map(line => {
-            const [suffix, count] = line.split(':');
-            return { suffix: suffix.trim(), count: parseInt(count, 10) };
-          });
-
-        hashCache.set(prefix, entries);
-
-        // Find matching suffix
-        const match = entries.find(entry => entry.suffix === suffix);
-        resolve(match ? match.count : 0);
-      });
-    }).on('error', (err) => {
-      reject(err);
-    });
   });
 }
 
@@ -95,11 +98,11 @@ function parseInputFile(filePath) {
 
   // Detect CSV format by file extension
   const isCSV = filePath.toLowerCase().endsWith('.csv');
-  
+
   lines.forEach((line, index) => {
     const trimmedLine = line.trim();
     if (!trimmedLine) return; // Skip blank lines
-    
+
     let password;
     if (isCSV) {
       // Parse CSV properly handling quoted fields with commas
@@ -132,15 +135,15 @@ function parseInputFile(filePath) {
       // Plain text file, one password per line
       password = trimmedLine;
     }
-    
+
     if (password) {
       result.push({
         password: password,
-        originalLineNumber: index + 1
+        originalLineNumber: index + 1,
       });
     }
   });
-  
+
   return result;
 }
 
@@ -148,7 +151,7 @@ function parseInputFile(filePath) {
  * Add delay between requests to be respectful to the API
  */
 function delay(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 /**
@@ -194,14 +197,14 @@ async function main() {
   }
 
   // Basic argument parsing
-  const nonFlagArgs = args.filter(arg => !arg.startsWith('--'));
+  const nonFlagArgs = args.filter((arg) => !arg.startsWith('--'));
   const filePath = path.resolve(nonFlagArgs[0]);
 
   const hasFlag = (name) => args.includes(name);
 
   const getFlagValue = (name) => {
     const prefix = `${name}=`;
-    const direct = args.find(a => a === name || a.startsWith(prefix));
+    const direct = args.find((a) => a === name || a.startsWith(prefix));
     if (!direct) return null;
     if (direct.startsWith(prefix)) {
       return direct.slice(prefix.length);
@@ -232,7 +235,9 @@ async function main() {
 
   if (includePasswords && !exportCsv) {
     console.error('\n⚠️  --include-passwords is only valid when used with --export-csv.');
-    console.error('   Passwords will not be printed to stdout; they are only included in the CSV export.\n');
+    console.error(
+      '   Passwords will not be printed to stdout; they are only included in the CSV export.\n'
+    );
   }
 
   console.log('Parsing passwords...');
@@ -255,7 +260,7 @@ async function main() {
 
     try {
       const count = await checkPassword(password);
-      
+
       if (!wasCached) {
         checkedCount++;
         // Add delay after new API calls to respect rate limits
@@ -266,12 +271,13 @@ async function main() {
 
       const greenCheck = `${COLOR_GREEN}✓${COLOR_RESET}`;
       const redX = `${COLOR_RED}✗${COLOR_RESET}`;
-      
+
       results.push({
         password,
         count,
         originalLineNumber: entry.originalLineNumber,
-        status: count === 0 ? `${greenCheck} Safe` : `${redX} PWNED (${count.toLocaleString()} times)`
+        status:
+          count === 0 ? `${greenCheck} Safe` : `${redX} PWNED (${count.toLocaleString()} times)`,
       });
 
       // Progress indicator
@@ -280,14 +286,16 @@ async function main() {
       }
 
       const { bar, percent, found } = renderProgressBar(i + 1, passwordEntries.length, pwnedCount);
-      process.stdout.write(`\r${COLOR_CYAN}Progress:${COLOR_RESET} [${bar}] ${percent}% (${i + 1}/${passwordEntries.length}) | ${COLOR_GREEN}Pwned:${COLOR_RESET} ${found}`);
+      process.stdout.write(
+        `\r${COLOR_CYAN}Progress:${COLOR_RESET} [${bar}] ${percent}% (${i + 1}/${passwordEntries.length}) | ${COLOR_GREEN}Pwned:${COLOR_RESET} ${found}`
+      );
     } catch (error) {
       const redX = `${COLOR_RED}✗${COLOR_RESET}`;
       results.push({
         password,
         count: -1,
         originalLineNumber: entry.originalLineNumber,
-        status: `${redX} Error: ${error.message}`
+        status: `${redX} Error: ${error.message}`,
       });
     }
   }
@@ -302,9 +310,9 @@ async function main() {
   });
 
   console.log('\n--- Summary ---');
-  const safePasswords = results.filter(r => r.count === 0).length;
-  const pwnedPasswords = results.filter(r => r.count > 0).length;
-  const errors = results.filter(r => r.count === -1).length;
+  const safePasswords = results.filter((r) => r.count === 0).length;
+  const pwnedPasswords = results.filter((r) => r.count > 0).length;
+  const errors = results.filter((r) => r.count === -1).length;
 
   console.log(`Total passwords checked: ${passwordEntries.length}`);
   console.log(`Safe passwords: ${safePasswords}`);
@@ -314,7 +322,9 @@ async function main() {
   }
   console.log(`\nAPI calls made: ${checkedCount}`);
   console.log(`Results from cache: ${cachedCount}`);
-  console.log(`Cache efficiency: ${passwordEntries.length > 0 ? ((cachedCount / passwordEntries.length) * 100).toFixed(1) : 0}%`);
+  console.log(
+    `Cache efficiency: ${passwordEntries.length > 0 ? ((cachedCount / passwordEntries.length) * 100).toFixed(1) : 0}%`
+  );
 
   if (exportCsv) {
     try {
@@ -324,13 +334,10 @@ async function main() {
       const lines = [headers.join(',')];
 
       results.forEach((result) => {
-        const row = [
-          result.originalLineNumber,
-          result.count >= 0 ? result.count : ''
-        ];
+        const row = [result.originalLineNumber, result.count >= 0 ? result.count : ''];
         if (includePasswords) {
           // Only include the password for pwned entries; leave blank for safe or error rows
-          row.push(result.count > 0 ? (result.password || '') : '');
+          row.push(result.count > 0 ? result.password || '' : '');
         }
         lines.push(row.map(escapeCsv).join(','));
       });
@@ -346,7 +353,7 @@ async function main() {
   }
 }
 
-main().catch(error => {
+main().catch((error) => {
   console.error('Fatal error:', error);
   process.exit(1);
 });

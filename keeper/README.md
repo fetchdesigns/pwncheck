@@ -21,12 +21,14 @@ pip3 install keepercommander
 The keeper command should be in your Python bin directory. Add it to your shell profile:
 
 **For zsh (macOS default):**
+
 ```bash
 echo 'export PATH="/Library/Frameworks/Python.framework/Versions/3.12/bin:$PATH"' >> ~/.zshrc
 source ~/.zshrc
 ```
 
 **For bash:**
+
 ```bash
 echo 'export PATH="/Library/Frameworks/Python.framework/Versions/3.12/bin:$PATH"' >> ~/.bash_profile
 source ~/.bash_profile
@@ -49,6 +51,7 @@ keeper shell
 ```
 
 Login with your Keeper credentials and use commands like:
+
 - `ls` - List all records
 - `get <record_uid>` - View record details
 
@@ -77,12 +80,14 @@ from keepercommander import params, api
 ### "keeper: command not found"
 
 Check if keeper is installed and find its location:
+
 ```bash
 pip3 show keepercommander
 python3 -m site --user-base
 ```
 
 Find the keeper binary:
+
 ```bash
 find /Library/Frameworks/Python.framework -name keeper 2>/dev/null
 find ~/Library/Python -name keeper 2>/dev/null
@@ -91,6 +96,7 @@ find ~/Library/Python -name keeper 2>/dev/null
 ### "Permission denied" or API errors
 
 Contact your Keeper admin to:
+
 1. Enable Commander access for your account
 2. Grant API access permissions
 3. Verify your account has necessary privileges
