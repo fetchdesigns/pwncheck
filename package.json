@@ -15,7 +15,8 @@
     "audit": "npm audit",
     "test": "node --test",
     "test:watch": "node --test --watch",
-    "pretest": "npm run lint && npm run format"
+    "pretest": "npm run lint && npm run format",
+    "release": "standard-version"
   },
   "lint-staged": {
     "*.{js,cjs,mjs,json,md,yml,yaml}": [
@@ -45,6 +46,7 @@
     "gitleaks-secret-scanner": "1.2.2",
     "husky": "9.1.7",
     "lint-staged": "16.2.7",
-    "prettier": "3.7.4"
+    "prettier": "3.7.4",
+    "standard-version": "9.5.0"
   }
 }

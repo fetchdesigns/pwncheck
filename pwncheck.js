@@ -4,6 +4,8 @@ import crypto from 'crypto';
 import https from 'https';
 import fs from 'fs';
 import path from 'path';
+import { readFileSync } from 'fs';
+import { fileURLToPath } from 'url';
 
 // Configuration constants
 export const API_RATE_LIMIT_DELAY_MS = 100;
@@ -197,7 +199,17 @@ export async function main() {
   }
 
   // Basic argument parsing
-  const nonFlagArgs = args.filter((arg) => !arg.startsWith('--'));
+  // Handle --version flag
+  if (args.includes('--version') || args.includes('-v')) {
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = path.dirname(__filename);
+    const packageJsonPath = path.join(__dirname, 'package.json');
+    const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8'));
+    console.log(`pwncheck v${packageJson.version}`);
+    return;
+  }
+
+  const nonFlagArgs = args.filter((arg) => !arg.startsWith('--') && !arg.startsWith('-'));
   const filePath = path.resolve(nonFlagArgs[0]);
 
   const hasFlag = (name) => args.includes(name);
